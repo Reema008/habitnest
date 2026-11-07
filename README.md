@@ -100,8 +100,9 @@ Never put the `service_role` / secret key or the VAPID **private** key in `.env`
 ### 3. Supabase setup
 1. **Authentication → Sign In / Providers → Email**: keep Email enabled, **turn "Confirm email" OFF**.
    HabitNest maps usernames to internal, non-deliverable addresses, so no email is ever sent.
-2. **Authentication → Passkeys** (for fingerprint sign-in): enable it and set the relying party to
-   `reema008.github.io` with origins `https://reema008.github.io` and `http://localhost:5173`.
+2. **Authentication → Passkeys** (for fingerprint sign-in): enable it with relying party ID
+   `reema008.github.io` and allowed origin `https://reema008.github.io`. Origins must match the RP ID's
+   domain, so passkeys only work on the deployed site; use username + password when running locally.
 3. **Database → Extensions**: enable `pg_cron` and `pg_net` (needed for reminders).
 4. Apply the migrations in `supabase/migrations/` in filename order. Use any one of:
    - the Supabase MCP / dashboard **SQL Editor** (paste each file in order), or
