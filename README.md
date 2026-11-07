@@ -114,6 +114,9 @@ Never put the `service_role` / secret key or the VAPID **private** key in `.env`
    select vault.create_secret('<VAPID private key>',       'habitnest_vapid_private_key');
    select vault.create_secret('https://reema008.github.io/habitnest/', 'habitnest_vapid_subject');
    ```
+   > The hosted project `vmzuxjaigjossyhsksvz` was set up through the Supabase MCP/SQL Editor, so its
+   > migration history uses different version numbers than these files. Before using `supabase db push`
+   > there, run `npx supabase migration repair --status applied <version>` for each existing file.
 6. Deploy the Edge Functions (`supabase/functions/*`): `npx supabase functions deploy send-reminders` and
    `npx supabase functions deploy admin-reset-password` (or deploy them via the Supabase MCP).
 
