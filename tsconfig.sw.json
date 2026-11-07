@@ -1,0 +1,22 @@
+{
+  // Type-checks the service worker (excluded from tsconfig.app.json; bundled by vite-plugin-pwa).
+  // Usage: npx tsc --noEmit -p tsconfig.sw.json
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.sw.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "WebWorker"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": [],
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src/sw.ts"]
+}

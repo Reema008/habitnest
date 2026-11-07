@@ -11,7 +11,8 @@
     "db:types": "node scripts/gen-db-types.ts",
     "test": "vitest run --project unit",
     "test:db": "vitest run --project db",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "pwa:assets": "pwa-assets-generator"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",

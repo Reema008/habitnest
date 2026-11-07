@@ -27,6 +27,7 @@ export const queryKeys = {
     all: ['family'] as const,
     mine: ['family', 'mine'] as const,
     invitations: ['family', 'invitations'] as const,
+    invitePreview: (code: string) => ['family', 'invite-preview', code] as const,
     leaderboard: (start: string, end: string) => ['family', 'leaderboard', start, end] as const,
     metrics: (start: string, end: string) => ['family', 'metrics', start, end] as const,
   },

@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router'
 import { ChartColumn, House, ListChecks, UserRound, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { OfflineBanner } from '@/components/common/offline-banner'
+import { SettingsSync } from '@/components/settings/settings-sync'
 
 const TABS = [
   { to: '/home', label: 'Home', icon: House },
@@ -15,6 +16,7 @@ const TABS = [
 export function AppShell() {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col">
+      <SettingsSync />
       <OfflineBanner />
       <main id="main" className="safe-top flex-1 px-4 pb-32 pt-2">
         <Outlet />

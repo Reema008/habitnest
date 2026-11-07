@@ -1,4 +1,12 @@
-// AGENT-STUB: replaced by the feature implementation.
+import { Navigate, Route, Routes } from 'react-router'
+import ProfilePage from './profile-page'
+
+/** /profile/* — the user's profile hub. */
 export default function ProfileRoutes() {
-  return null
+  return (
+    <Routes>
+      <Route index element={<ProfilePage />} />
+      <Route path="*" element={<Navigate to="/profile" replace />} />
+    </Routes>
+  )
 }

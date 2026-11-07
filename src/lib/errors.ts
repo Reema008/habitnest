@@ -28,7 +28,8 @@ export function toUserMessage(error: unknown, fallback = 'Something went wrong. 
   if (/permission denied|row-level security/i.test(msg)) return 'You do not have permission to do that.'
   if (/duplicate key value/i.test(msg)) return 'That already exists.'
   // Messages raised by our own SQL (RAISE EXCEPTION) are written for users.
-  if (msg.length < 160 && !/^(PGRST|42|23)\d/.test(e?.code ?? '')) return msg
+  // (42501 = our own "not allowed" messages; generic permission errors were handled above.)
+  if (msg.length < 160 && !/^(PGRST|23|42(?!501))/.test(e?.code ?? '')) return msg
   return fallback
 }
 

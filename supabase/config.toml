@@ -1,0 +1,11 @@
+# Supabase CLI configuration (only the settings HabitNest relies on; everything else uses defaults).
+project_id = "habitnest"
+
+# Called by pg_cron with the x-cron-secret header (checked in code), not with a user JWT.
+[functions.send-reminders]
+verify_jwt = false
+
+# Verifies the caller's access token itself (auth.getUser) so it can return friendly JSON errors
+# and answer CORS preflight requests.
+[functions.admin-reset-password]
+verify_jwt = false

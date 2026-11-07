@@ -1,4 +1,12 @@
-// AGENT-STUB: replaced by the feature implementation.
+import { Navigate, Route, Routes } from 'react-router'
+import SchedulePage from './schedule-page'
+
+/** /schedule/* — the personal weekly schedule. */
 export default function ScheduleRoutes() {
-  return null
+  return (
+    <Routes>
+      <Route index element={<SchedulePage />} />
+      <Route path="*" element={<Navigate to="/schedule" replace />} />
+    </Routes>
+  )
 }
