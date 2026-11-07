@@ -12,7 +12,8 @@
     "test": "vitest run --project unit",
     "test:db": "vitest run --project db",
     "typecheck": "tsc -b --noEmit",
-    "pwa:assets": "pwa-assets-generator"
+    "pwa:assets": "pwa-assets-generator",
+    "test:live": "node scripts/live-smoke.ts"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
