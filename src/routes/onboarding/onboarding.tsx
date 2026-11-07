@@ -12,7 +12,7 @@ import { PetPicker } from '@/components/pet/pet-picker'
 import { updateMyProfile } from '@/api/profiles'
 import { supabase } from '@/lib/supabase'
 import { deviceTimeZone } from '@/lib/dates'
-import { toUserMessage, unwrap } from '@/lib/errors'
+import { toUserMessage, unwrap, unwrapMaybe } from '@/lib/errors'
 import { queryKeys } from '@/lib/query-keys'
 import { cn } from '@/lib/utils'
 import { useCurrentUser } from '@/providers/auth-provider'
@@ -48,7 +48,7 @@ export default function OnboardingPage() {
       if (!joiningViaLink && familyMode === 'create') {
         unwrap(await supabase.rpc('create_family', { p_name: familyName.trim() }))
       } else if (!joiningViaLink && familyMode === 'join') {
-        const joined = unwrap(await supabase.rpc('join_family', { p_code: code.trim().toUpperCase() }))
+        const joined = unwrapMaybe(await supabase.rpc('join_family', { p_code: code.trim().toUpperCase() }))
         if (!joined) {
           toast.error('That invite code is invalid or has expired.')
           return

@@ -32,9 +32,16 @@ export function toUserMessage(error: unknown, fallback = 'Something went wrong. 
   return fallback
 }
 
-/** Throws a typed error when a Supabase call returned one; returns data otherwise. */
-export function unwrap<T>(result: { data: T | null; error: ErrorLike }): T {
+type SupabaseResult = { data: unknown; error: ErrorLike }
+
+/** Throws a typed error when a Supabase call failed; otherwise returns its (non-null) data. */
+export function unwrap<R extends SupabaseResult>(result: R): NonNullable<R['data']> {
   if (result.error) throw new AppError(result.error.message ?? 'Request failed', result.error.code)
-  // A null result without an error is legitimate for some RPCs (e.g. join_family on a bad code).
-  return result.data as T
+  return result.data as NonNullable<R['data']>
+}
+
+/** Like unwrap, but keeps `null` (maybeSingle(), RPCs that may return null). */
+export function unwrapMaybe<R extends SupabaseResult>(result: R): R['data'] | null {
+  if (result.error) throw new AppError(result.error.message ?? 'Request failed', result.error.code)
+  return result.data ?? null
 }
