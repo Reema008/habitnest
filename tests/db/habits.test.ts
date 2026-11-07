@@ -92,6 +92,23 @@ describe('entry validation (server-side)', () => {
       [habit, utcToday(-3)])).rejects.toThrow(/duplicate key/)
   })
 
+  test('PostgREST-style upsert (all columns in DO UPDATE) works and cannot move an entry', async () => {
+    const water = await habitByTemplate(db, user.id, 'water')
+    const upsert = (date: string, litres: number) =>
+      asUser(db, user.id,
+        `insert into public.habit_entries (habit_id, entry_date, habit_version, field_values, notes)
+         values ($1, $2, 1, $3, null)
+         on conflict (habit_id, entry_date) do update set habit_id = excluded.habit_id, entry_date = excluded.entry_date,
+           habit_version = excluded.habit_version, field_values = excluded.field_values, notes = excluded.notes
+         returning field_values`, [water.id, date, JSON.stringify({ litres })])
+    await upsert(utcToday(-7), 1)
+    const [r] = await upsert(utcToday(-7), 2.5) as { field_values: { litres: number } }[]
+    expect(r!.field_values.litres).toBe(2.5)
+    await expect(asUser(db, user.id,
+      `update public.habit_entries set entry_date = $2 where habit_id = $1 and entry_date = $3`,
+      [water.id, utcToday(-8), utcToday(-7)])).rejects.toThrow(/cannot change/)
+  })
+
   test('notes are discarded when the habit has notes disabled', async () => {
     const sleep = await habitByTemplate(db, user.id, 'sleep')
     const [e] = await logEntry(db, user.id, sleep.id, utcToday(-5), { hours: 8 }, 'should vanish') as { notes: string | null }[]
