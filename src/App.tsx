@@ -1,122 +1,85 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { lazy, Suspense } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
+import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { FullScreenLoader } from '@/components/common/states'
+import { AppShell, PlainShell } from '@/layouts/app-shell'
+import { queryClient, queryPersister } from '@/lib/query-client'
+import { AuthProvider } from '@/providers/auth-provider'
+import { ThemeProvider } from '@/providers/theme-provider'
+import { RedirectIfSignedIn, RequireAuth } from '@/routes/guards'
+import { AppUpdatePrompt } from '@/components/pwa/app-update-prompt'
 
-function App() {
-  const [count, setCount] = useState(0)
+// Route modules are code-split. Each feature module owns its own nested <Routes>.
+const SignInPage = lazy(() => import('@/routes/auth/sign-in'))
+const SignUpPage = lazy(() => import('@/routes/auth/sign-up'))
+const ChangePasswordPage = lazy(() => import('@/routes/auth/change-password'))
+const OnboardingPage = lazy(() => import('@/routes/onboarding/onboarding'))
+const HomePage = lazy(() => import('@/routes/home/dashboard'))
+const HabitsRoutes = lazy(() => import('@/routes/habits'))
+const TrackRoutes = lazy(() => import('@/routes/track'))
+const ReportsRoutes = lazy(() => import('@/routes/reports'))
+const FamilyRoutes = lazy(() => import('@/routes/family'))
+const ProfileRoutes = lazy(() => import('@/routes/profile'))
+const ScheduleRoutes = lazy(() => import('@/routes/schedule'))
+const PetRoutes = lazy(() => import('@/routes/pet'))
+const SettingsRoutes = lazy(() => import('@/routes/settings'))
+const NotificationsRoutes = lazy(() => import('@/routes/notifications'))
+const NotFoundPage = lazy(() => import('@/routes/not-found'))
 
+export default function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister: queryPersister, maxAge: 1000 * 60 * 60 * 24, buster: 'v1' }}
+    >
+      <ThemeProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+              <Suspense fallback={<FullScreenLoader />}>
+                <Routes>
+                  <Route index element={<Navigate to="/home" replace />} />
 
-      <div className="ticks"></div>
+                  <Route element={<RedirectIfSignedIn />}>
+                    <Route element={<PlainShell />}>
+                      <Route path="sign-in" element={<SignInPage />} />
+                      <Route path="sign-up" element={<SignUpPage />} />
+                    </Route>
+                  </Route>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+                  <Route element={<RequireAuth allowUnonboarded />}>
+                    <Route element={<PlainShell />}>
+                      <Route path="change-password" element={<ChangePasswordPage />} />
+                      <Route path="onboarding" element={<OnboardingPage />} />
+                    </Route>
+                  </Route>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+                  <Route element={<RequireAuth />}>
+                    <Route element={<AppShell />}>
+                      <Route path="home" element={<HomePage />} />
+                      <Route path="habits/*" element={<HabitsRoutes />} />
+                      <Route path="track/*" element={<TrackRoutes />} />
+                      <Route path="reports/*" element={<ReportsRoutes />} />
+                      <Route path="family/*" element={<FamilyRoutes />} />
+                      <Route path="profile/*" element={<ProfileRoutes />} />
+                      <Route path="schedule/*" element={<ScheduleRoutes />} />
+                      <Route path="pet/*" element={<PetRoutes />} />
+                      <Route path="settings/*" element={<SettingsRoutes />} />
+                      <Route path="notifications/*" element={<NotificationsRoutes />} />
+                    </Route>
+                  </Route>
+
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+            <Toaster position="top-center" richColors closeButton />
+            <AppUpdatePrompt />
+          </AuthProvider>
+        </TooltipProvider>
+      </ThemeProvider>
+    </PersistQueryClientProvider>
   )
 }
-
-export default App

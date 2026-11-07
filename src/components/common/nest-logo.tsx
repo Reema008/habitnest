@@ -1,0 +1,18 @@
+/** HabitNest mark: a soft nest cradling three pastel eggs. */
+export function NestLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} role="img" aria-label="HabitNest">
+      <defs>
+        <linearGradient id="hn-nest" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stopColor="#c9a7f5" />
+          <stop offset="1" stopColor="#f7b9a6" />
+        </linearGradient>
+      </defs>
+      <ellipse cx="22" cy="30" rx="8" ry="10" fill="#bfe8d6" />
+      <ellipse cx="42" cy="30" rx="8" ry="10" fill="#f9d7a8" />
+      <ellipse cx="32" cy="26" rx="8.5" ry="11" fill="#cfe0fb" />
+      <path d="M6 34c0 12 11.6 20 26 20s26-8 26-20H6z" fill="url(#hn-nest)" />
+      <path d="M10 39c7 3 14 4 22 4s15-1 22-4M14 46c5 2 11 3 18 3s13-1 18-3" stroke="#fff" strokeOpacity=".55" strokeWidth="2" fill="none" strokeLinecap="round" />
+    </svg>
+  )
+}
