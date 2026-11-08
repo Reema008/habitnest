@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { ChevronRight, Hand, Heart, MoveVertical, Smile, Star, WifiOff } from 'lucide-react'
+import { ChevronRight, Hand, Heart, MoveVertical, PawPrint, Smile, Star, WifiOff } from 'lucide-react'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { usePrefs } from '@/store/prefs'
 import type { LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -23,6 +26,8 @@ export default function PetPage() {
   const online = useOnline()
   const update = useUpdateProfile()
   const [play, setPlay] = useState<{ gesture: PetGesture; key: number }>({ gesture: 'wave', key: 0 })
+  const companion = usePrefs((s) => s.petCompanion)
+  const setCompanion = usePrefs((s) => s.setPetCompanion)
 
   const pending = update.isPending ? (update.variables?.pet_type ?? null) : null
   const pet = pending ?? profile.pet_type
@@ -86,6 +91,21 @@ export default function PetPage() {
             </span>
             <ChevronRight className="size-5 text-muted-foreground" aria-hidden />
           </Link>
+
+          <GlassCard as="section" className="flex items-center gap-3">
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-peach">
+              <PawPrint className="size-6 text-foreground/80" aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <Label htmlFor="pet-companion" className="font-bold">
+                Take {PET_NAMES[pet]} everywhere
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Your pet follows you around the app. Tap it for tricks, drag it anywhere, or fling the ball to play catch.
+              </p>
+            </div>
+            <Switch id="pet-companion" checked={companion} onCheckedChange={setCompanion} />
+          </GlassCard>
         </>
       ) : (
         <GlassCard className="flex items-start gap-3">

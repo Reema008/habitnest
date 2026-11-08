@@ -3,6 +3,7 @@ import { ChartColumn, House, ListChecks, UserRound, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { OfflineBanner } from '@/components/common/offline-banner'
 import { SettingsSync } from '@/components/settings/settings-sync'
+import { PetCompanion } from '@/components/pet/pet-companion'
 
 const TABS = [
   { to: '/home', label: 'Home', icon: House },
@@ -21,6 +22,7 @@ export function AppShell() {
       <main id="main" className="safe-top flex-1 px-4 pb-32 pt-2">
         <Outlet />
       </main>
+      <PetCompanion />
       <nav
         aria-label="Main"
         className="glass safe-bottom fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-lg rounded-t-3xl border-b-0 px-2 pt-2"

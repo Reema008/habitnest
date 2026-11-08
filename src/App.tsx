@@ -35,6 +35,9 @@ export default function App() {
       persistOptions={{ persister: queryPersister, maxAge: 1000 * 60 * 60 * 24, buster: 'v1' }}
     >
       <ThemeProvider>
+        <div className="app-orbs" aria-hidden>
+          <span /><span /><span /><span /><span />
+        </div>
         <TooltipProvider>
           <AuthProvider>
             <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>

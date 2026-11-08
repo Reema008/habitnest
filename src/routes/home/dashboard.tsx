@@ -25,6 +25,7 @@ import { useDaySchedule } from '@/hooks/use-schedules'
 import { dayOfWeek, formatDay, todayISO } from '@/lib/dates'
 import { cn } from '@/lib/utils'
 import { useCurrentUser } from '@/providers/auth-provider'
+import { usePrefs } from '@/store/prefs'
 import type { HabitEntry, HabitWithFields } from '@/types/models'
 
 function greeting(date = new Date()): string {
@@ -40,6 +41,8 @@ export default function DashboardPage() {
   const { userId, profile } = useCurrentUser()
   const today = todayISO()
   const unread = useUnreadCount()
+  // When the roaming pet is on it greets you itself, so the greeting card would be a second pet.
+  const roamingPet = usePrefs((s) => s.petCompanion) && !!profile.pet_type
 
   return (
     <div className="space-y-4 pb-4">
@@ -70,7 +73,7 @@ export default function DashboardPage() {
         </Button>
       </header>
 
-      <PetGreeting />
+      {roamingPet ? null : <PetGreeting />}
       <InstallPrompt />
       <TodayOverview today={today} />
       <QuickLinks />
