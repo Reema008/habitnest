@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { motion, useAnimationControls, useReducedMotion, type TargetAndTransition } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { PET_NAMES, type PetType } from '@/types/models'
-import { GESTURE_DURATION_MS, type PetExpression, type PetGesture } from './pet-config'
-import { PetArm, PetBack, PetBelly, PetBody, PetFace, PetHeadBack, PetHeadFront, PetHeadShape } from './pet-parts'
+import { GESTURE_DURATION_MS, rightShoulder, type PetExpression, type PetGesture } from './pet-config'
+import { PetArm, PetBack, PetBelly, PetBody, PetDefs, PetFace, PetFeet, PetHeadBack, PetHeadFront, PetHeadShape } from './pet-parts'
 
 export type { PetExpression, PetGesture } from './pet-config'
 
@@ -28,7 +28,7 @@ type PetProps = {
 const pivot = (x: number, y: number) => ({ transformBox: 'view-box' as const, originX: x / 200, originY: y / 200 })
 
 const seconds = (g: PetGesture) => GESTURE_DURATION_MS[g] / 1000
-const WAVE: TargetAndTransition = { rotate: [0, -140, -105, -140, -105, -140, 0], transition: { duration: seconds('wave'), ease: 'easeInOut' } }
+const WAVE: TargetAndTransition = { rotate: [0, -124, -94, -124, -94, -124, 0], transition: { duration: seconds('wave'), ease: 'easeInOut' } }
 const BOUNCE: TargetAndTransition = { y: [0, -26, 0, -12, 0], scaleY: [1, 0.95, 1.04, 0.98, 1], transition: { duration: seconds('bounce'), ease: 'easeOut' } }
 const NOD: TargetAndTransition = { y: [0, 7, 0, 7, 0], rotate: [0, 2, 0, -2, 0], transition: { duration: seconds('nod'), ease: 'easeInOut' } }
 const BREATHE = { scaleY: [1, 1.03, 1], scaleX: [1, 0.992, 1] }
@@ -111,6 +111,9 @@ export function Pet({ type, gesture = null, gestureKey = 0, expression, size = 1
 
   const shown: PetExpression = expression ?? (active ? (active === 'nod' ? 'smile' : 'grin') : autoExpression)
   const name = label ?? PET_NAMES[type]
+  // Gradient ids must be unique per instance (several pets can share a page) and safe inside url(#…).
+  const uid = `pet${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
+  const [shoulderX, shoulderY] = rightShoulder(type)
 
   return (
     <svg
@@ -123,25 +126,27 @@ export function Pet({ type, gesture = null, gestureKey = 0, expression, size = 1
       aria-hidden={name ? undefined : true}
       focusable="false"
     >
-      <ellipse cx={100} cy={194} rx={46} ry={5.5} fill="#3a2a48" opacity={0.12} />
+      <PetDefs type={type} uid={uid} />
+      <ellipse cx={100} cy={194} rx={48} ry={5.5} fill="#3a2a48" opacity={0.12} />
       <motion.g animate={bounce} style={pivot(100, 192)}>
         <motion.g
           animate={reduce ? undefined : BREATHE}
           transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
           style={pivot(100, 190)}
         >
-          <PetBack type={type} />
-          <PetBody type={type} />
-          <PetBelly type={type} />
-          <PetArm type={type} side="left" />
-          <motion.g animate={nod} style={pivot(100, 132)}>
-            <PetHeadBack type={type} />
-            <PetHeadShape type={type} />
-            <PetHeadFront type={type} />
-            <PetFace type={type} expression={shown} blink={blink && !reduce} />
+          <PetBack type={type} uid={uid} />
+          <PetBody type={type} uid={uid} />
+          <PetBelly type={type} uid={uid} />
+          <PetFeet type={type} uid={uid} />
+          <PetArm type={type} uid={uid} side="left" />
+          <motion.g animate={nod} style={pivot(100, 134)}>
+            <PetHeadBack type={type} uid={uid} />
+            <PetHeadShape type={type} uid={uid} />
+            <PetHeadFront type={type} uid={uid} />
+            <PetFace type={type} uid={uid} expression={shown} blink={blink && !reduce} />
           </motion.g>
-          <motion.g animate={wave} style={pivot(139, 136)}>
-            <PetArm type={type} side="right" />
+          <motion.g animate={wave} style={pivot(shoulderX, shoulderY)}>
+            <PetArm type={type} uid={uid} side="right" />
           </motion.g>
         </motion.g>
       </motion.g>
