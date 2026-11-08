@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { GlassCard } from '@/components/common/glass-card'
-import { AVATAR_PRESETS, UserAvatar } from '@/components/common/user-avatar'
 import { PetPicker } from '@/components/pet/pet-picker'
 import { updateMyProfile } from '@/api/profiles'
 import { supabase } from '@/lib/supabase'
@@ -32,7 +31,6 @@ export default function OnboardingPage() {
 
   const [step, setStep] = useState<Step>('profile')
   const [displayName, setDisplayName] = useState(profile.display_name)
-  const [preset, setPreset] = useState<string>(profile.avatar_preset ?? 'fox')
   const [pet, setPet] = useState<PetType | null>(profile.pet_type)
   const [familyMode, setFamilyMode] = useState<'create' | 'join' | null>(null)
   const [familyName, setFamilyName] = useState(`${profile.display_name}'s Nest`)
@@ -56,7 +54,6 @@ export default function OnboardingPage() {
       }
       const saved = await updateMyProfile(userId, {
         display_name: displayName.trim() || profile.display_name,
-        avatar_preset: preset,
         pet_type: pet,
         timezone: deviceTimeZone(),
         onboarded_at: new Date().toISOString(),
@@ -95,34 +92,11 @@ export default function OnboardingPage() {
               <h1 className="text-2xl font-extrabold">Welcome to HabitNest</h1>
               <p className="text-sm text-muted-foreground">Let's set up your profile. You can change this any time.</p>
             </div>
-            <div className="flex justify-center">
-              <UserAvatar profile={{ display_name: displayName, avatar_url: profile.avatar_url, avatar_preset: preset }} className="size-24 text-4xl" />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="displayName">Display name</Label>
               <Input id="displayName" className="h-12" maxLength={40} value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+              <p className="text-sm text-muted-foreground">This is how your family will see you.</p>
             </div>
-            <fieldset className="space-y-2">
-              <legend className="text-sm font-medium">Pick an avatar</legend>
-              <div className="grid grid-cols-6 gap-2">
-                {AVATAR_PRESETS.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    aria-label={p.id}
-                    aria-pressed={preset === p.id}
-                    onClick={() => setPreset(p.id)}
-                    className={cn(
-                      'flex aspect-square items-center justify-center rounded-2xl text-2xl transition',
-                      p.bg,
-                      preset === p.id ? 'ring-3 ring-primary' : 'opacity-80 hover:opacity-100',
-                    )}
-                  >
-                    <span aria-hidden>{p.emoji}</span>
-                  </button>
-                ))}
-              </div>
-            </fieldset>
           </section>
         ) : null}
 
