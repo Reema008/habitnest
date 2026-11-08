@@ -54,13 +54,15 @@ export default function OnboardingPage() {
           return
         }
       }
-      await updateMyProfile(userId, {
+      const saved = await updateMyProfile(userId, {
         display_name: displayName.trim() || profile.display_name,
         avatar_preset: preset,
         pet_type: pet,
         timezone: deviceTimeZone(),
         onboarded_at: new Date().toISOString(),
       })
+      // Update the cache immediately so guards never see the pre-onboarding profile.
+      qc.setQueryData([...queryKeys.profile.me, userId], saved)
       await qc.invalidateQueries({ queryKey: queryKeys.profile.me })
       await qc.invalidateQueries({ queryKey: queryKeys.family.all })
       navigate(next, { replace: true })

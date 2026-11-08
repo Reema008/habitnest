@@ -13,6 +13,8 @@ type AuthState = {
   /** True until the stored session has been restored. */
   initializing: boolean
   profileLoading: boolean
+  /** True once the profile was fetched from the server in this session (not just restored from cache). */
+  profileFresh: boolean
   profileError: unknown
   refetchProfile: () => void
 }
@@ -46,6 +48,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryKey: [...queryKeys.profile.me, userId],
     queryFn: () => getMyProfile(userId!),
     enabled: !!userId,
+    // Always confirm against the server when the app opens; cached data only bridges offline use.
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
 
   const value = useMemo<AuthState>(
@@ -55,10 +60,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profile: profileQuery.data ?? null,
       initializing,
       profileLoading: !!userId && profileQuery.isPending,
+      profileFresh: profileQuery.isFetchedAfterMount && !profileQuery.isFetching,
       profileError: profileQuery.error,
       refetchProfile: () => void profileQuery.refetch(),
     }),
-    [session, userId, profileQuery.data, profileQuery.isPending, profileQuery.error, initializing, profileQuery],
+    [session, userId, initializing, profileQuery],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

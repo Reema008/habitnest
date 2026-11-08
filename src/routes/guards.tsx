@@ -4,7 +4,7 @@ import { ErrorState, FullScreenLoader } from '@/components/common/states'
 
 /** Requires a session; also enforces forced password change and onboarding. */
 export function RequireAuth({ allowUnonboarded = false }: { allowUnonboarded?: boolean }) {
-  const { session, profile, initializing, profileLoading, profileError, refetchProfile } = useAuth()
+  const { session, profile, initializing, profileLoading, profileFresh, profileError, refetchProfile } = useAuth()
   const location = useLocation()
   const here = `${location.pathname}${location.search}`
 
@@ -17,6 +17,10 @@ export function RequireAuth({ allowUnonboarded = false }: { allowUnonboarded?: b
       </div>
     )
   }
+  // Gate decisions that would *block* the user must come from fresh server data, never from the
+  // persisted offline cache (which may predate onboarding or a password change).
+  const needsGate = profile.must_change_password || (!allowUnonboarded && !profile.onboarded_at)
+  if (needsGate && !profileFresh && navigator.onLine) return <FullScreenLoader />
   if (profile.must_change_password && location.pathname !== '/change-password') {
     return <Navigate to={`/change-password?next=${encodeURIComponent(here)}`} replace />
   }

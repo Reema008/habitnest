@@ -1,4 +1,7 @@
 import { useNavigate, useSearchParams } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-keys'
+import type { Profile } from '@/types/models'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -25,12 +28,14 @@ type Values = z.infer<typeof schema>
 export default function ChangePasswordPage() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-  const { refetchProfile } = useAuth()
+  const { refetchProfile, userId } = useAuth()
+  const qc = useQueryClient()
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { password: '', confirm: '' } })
 
   const onSubmit = form.handleSubmit(async (v) => {
     try {
       await changePassword(v.password)
+      qc.setQueryData<Profile>([...queryKeys.profile.me, userId], (old) => (old ? { ...old, must_change_password: false } : old))
       refetchProfile()
       toast.success('Password updated')
       navigate(safeNext(params.get('next')), { replace: true })
