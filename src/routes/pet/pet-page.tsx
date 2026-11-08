@@ -101,7 +101,7 @@ export default function PetPage() {
                 Take {PET_NAMES[pet]} everywhere
               </Label>
               <p className="text-sm text-muted-foreground">
-                Your pet follows you around the app. Tap it for tricks, drag it anywhere, or fling the ball to play catch.
+                Your pet keeps you company on every screen. Tap it for a trick or drag it wherever you like.
               </p>
             </div>
             <Switch id="pet-companion" checked={companion} onCheckedChange={setCompanion} />

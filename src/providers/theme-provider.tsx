@@ -22,11 +22,15 @@ export function useResolvedTheme(): 'light' | 'dark' {
 /** Applies the `dark` class and browser theme-color for the current theme. */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const resolved = useResolvedTheme()
+  const themeName = usePrefs((s) => s.themeName)
   useEffect(() => {
     const root = document.documentElement
+    root.dataset.theme = themeName
     root.classList.toggle('dark', resolved === 'dark')
     root.style.colorScheme = resolved
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', resolved === 'dark' ? '#231c35' : '#f3eefc')
-  }, [resolved])
+    // Match the browser UI colour to the theme background.
+    const bg = getComputedStyle(root).getPropertyValue('--background').trim()
+    if (bg) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', bg)
+  }, [resolved, themeName])
   return children
 }

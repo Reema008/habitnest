@@ -36,7 +36,7 @@ export function AppShell() {
                   cn(
                     'flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-xs font-semibold text-muted-foreground transition-colors',
                     'focus-visible:outline-2 focus-visible:outline-ring',
-                    isActive && 'bg-lavender/50 text-foreground',
+                    isActive && 'bg-primary/15 text-foreground',
                   )
                 }
               >
