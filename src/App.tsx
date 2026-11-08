@@ -37,6 +37,7 @@ export default function App() {
       <ThemeProvider>
         <div className="app-orbs" aria-hidden>
           <span /><span /><span /><span /><span />
+          <span /><span /><span /><span />
         </div>
         <TooltipProvider>
           <AuthProvider>

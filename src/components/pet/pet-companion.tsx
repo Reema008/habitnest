@@ -19,7 +19,7 @@ const BALL = 34 // px
 const TAB_BAR = 100 // keep clear of the bottom navigation
 const EDGE = 6
 
-type Phase = 'idle' | 'aim' | 'fly' | 'chase' | 'celebrate'
+type Phase = 'idle' | 'aim' | 'target' | 'fly' | 'chase' | 'celebrate'
 type Trick = 'wave' | 'nod' | 'bounce' | 'spin' | 'wiggle' | 'hop' | 'hearts'
 
 const TRICKS: { trick: Trick; say: readonly string[] }[] = [
@@ -62,9 +62,9 @@ function Companion({ type, name: displayName }: { type: PetType; name: string })
   const saved = usePrefs((s) => s.petPosition)
   const savePosition = usePrefs((s) => s.setPetPosition)
 
-  const petBounds: Bounds = { minX: EDGE, minY: EDGE + 40, maxX: w - PET - EDGE, maxY: h - PET - TAB_BAR }
+  const petBounds: Bounds = { minX: EDGE, minY: EDGE, maxX: w - PET - EDGE, maxY: h - PET - TAB_BAR + 12 }
   const ballBounds: Bounds = {
-    minX: BALL / 2 + EDGE, minY: 70, maxX: w - BALL / 2 - EDGE, maxY: h - TAB_BAR - BALL / 2 + 10,
+    minX: BALL / 2 + EDGE, minY: BALL / 2 + EDGE, maxX: w - BALL / 2 - EDGE, maxY: h - TAB_BAR + BALL / 2,
   }
   const start = clampPoint(saved ?? { x: w - PET - 14, y: h - PET - TAB_BAR - 8 }, petBounds)
 
@@ -189,33 +189,66 @@ function Companion({ type, name: displayName }: { type: PetType; name: string })
     }, reduce ? 600 : 1300)
   }
 
-  // ---- Ball pointer handling (drag anywhere, release to throw) ----
+  // ---- Ball: drag & release to throw, or tap the ball then tap anywhere ----
+  // Refs (not state) track the gesture so no pointer move is lost before React re-renders.
+  const aiming = useRef(false)
+  const downAt = useRef<Point>({ x: 0, y: 0 })
+  const moved = useRef(false)
+
   const onBallDown = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (busy) return
+    if (busy && phase !== 'target') return
     e.preventDefault()
+    e.stopPropagation()
     e.currentTarget.setPointerCapture(e.pointerId)
+    aiming.current = true
+    moved.current = false
+    downAt.current = { x: e.clientX, y: e.clientY }
     grab.current = { x: e.clientX - ballX.get(), y: e.clientY - ballY.get() }
     samples.current = [{ x: ballX.get(), y: ballY.get(), t: e.timeStamp }]
     setPhase('aim')
     setExpression('grin')
-    say('Throw it! Throw it!', 4000)
   }
   const onBallMove = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (phase !== 'aim') return
+    if (!aiming.current) return
+    if (!moved.current && distance(downAt.current, { x: e.clientX, y: e.clientY }) < 8) return
+    if (!moved.current) say('Throw it! Throw it!', 4000)
+    moved.current = true
     const p = clampPoint({ x: e.clientX - grab.current.x, y: e.clientY - grab.current.y }, ballBounds)
     ballX.set(p.x)
     ballY.set(p.y)
     samples.current.push({ ...p, t: e.timeStamp })
     if (samples.current.length > 20) samples.current.shift()
-    const petCenter = petX.get() + PET / 2
-    setFacing(p.x < petCenter ? 'left' : 'right')
+    setFacing(p.x < petX.get() + PET / 2 ? 'left' : 'right')
   }
   const onBallUp = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (phase !== 'aim') return
-    e.currentTarget.releasePointerCapture(e.pointerId)
+    if (!aiming.current) return
+    aiming.current = false
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
+    if (!moved.current) {
+      // A tap: wait for the next tap anywhere on screen and throw there.
+      setPhase('target')
+      say('Tap anywhere to throw! 🎾', 6000)
+      return
+    }
     const here = { x: ballX.get(), y: ballY.get() }
     void throwTo(landingPoint(here, releaseVelocity(samples.current), ballBounds))
   }
+  const onTargetTap = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    void throwTo(clampPoint({ x: e.clientX, y: e.clientY }, ballBounds))
+  }
+  const cancelTarget = () => {
+    setPhase('idle')
+    setBubble(null)
+    setExpression(undefined)
+  }
+  useEffect(() => {
+    if (phase !== 'target') return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && cancelTarget()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [phase])
   const onBallKey = (e: React.KeyboardEvent) => {
     if (busy || (e.key !== 'Enter' && e.key !== ' ')) return
     e.preventDefault()
@@ -241,18 +274,27 @@ function Companion({ type, name: displayName }: { type: PetType; name: string })
 
   const name = PET_NAMES[type]
   return (
-    <div className="pointer-events-none fixed inset-0 z-30" aria-live="polite">
+    <div className="pointer-events-none fixed inset-0 z-[45]" aria-live="polite">
+      {/* Aiming layer: after tapping the ball, the next tap anywhere throws it there. */}
+      {phase === 'target' ? (
+        <div
+          className="pointer-events-auto absolute inset-0 cursor-crosshair bg-lavender/10"
+          role="button"
+          aria-label="Tap anywhere to throw the ball. Press Escape to cancel."
+          onPointerDown={onTargetTap}
+        />
+      ) : null}
       {/* Ball */}
       <AnimatePresence>
         {phase !== 'celebrate' && phase !== 'chase' ? (
           <motion.button
             key="ball"
             type="button"
-            aria-label={`Ball — drag and let go to throw it for ${name}. Press Enter to throw.`}
+            aria-label={`Ball — tap it then tap anywhere, or drag and let go, to throw it for ${name}. Press Enter to throw.`}
             className="pointer-events-auto absolute left-0 top-0 touch-none rounded-full focus-visible:outline-3 focus-visible:outline-ring"
             style={{ x: ballX, y: ballY, rotate: ballSpin, width: BALL, height: BALL, marginLeft: -BALL / 2, marginTop: -BALL / 2 }}
             initial={{ scale: 0 }}
-            animate={{ scale: phase === 'aim' ? 1.15 : 1 }}
+            animate={{ scale: phase === 'aim' || phase === 'target' ? 1.2 : 1 }}
             exit={{ scale: 0, transition: { duration: 0.15 } }}
             onPointerDown={onBallDown}
             onPointerMove={onBallMove}

@@ -25,7 +25,7 @@ export function AppShell() {
       <PetCompanion />
       <nav
         aria-label="Main"
-        className="glass safe-bottom fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-lg rounded-t-3xl border-b-0 px-2 pt-2"
+        className="glass safe-bottom fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-lg rounded-t-3xl border-b-0 bg-background/55 px-2 pt-2 backdrop-blur-2xl backdrop-saturate-200"
       >
         <ul className="grid grid-cols-5">
           {TABS.map(({ to, label, icon: Icon }) => (
